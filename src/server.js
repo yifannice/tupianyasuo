@@ -4,30 +4,48 @@ const sharp = require('sharp');
 const path = require('path');
 
 const app = express();
-const upload = multer({ storage: multer.memoryStorage() });
-
-// 静态文件服务
-app.use(express.static(path.join(__dirname, '../public')));
-
-// 图片压缩接口
-app.post('/compress', upload.single('image'), async (req, res) => {
-    try {
-        const quality = parseInt(req.body.quality * 100);
-        const buffer = req.file.buffer;
-        
-        const compressedImage = await sharp(buffer)
-            .jpeg({ quality: quality })
-            .toBuffer();
-            
-        res.set('Content-Type', 'image/jpeg');
-        res.send(compressedImage);
-    } catch (error) {
-        console.error('压缩错误:', error);
-        res.status(500).send('图片压缩失败');
+const upload = multer({
+    limits: {
+        fileSize: 10 * 1024 * 1024 // 限制10MB
     }
 });
 
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
-    console.log(`服务器运行在 http://localhost:${PORT}`);
-}); 
+// 静态文件服务
+app.use(express.static('public'));
+
+// 压缩图片接口
+app.post('/compress', upload.single('image'), async (req, res) => {
+    try {
+        if (!req.file) {
+            return res.status(400).send('No image file uploaded');
+        }
+
+        let quality = parseInt(req.body.quality);
+        quality = Math.round(Math.pow(quality / 100, 0.5) * 100);
+        console.log('服务器收到的质量值:', quality);
+        console.log('处理后的质量值:', quality);
+        
+        const buffer = await sharp(req.file.buffer)
+            .jpeg({ 
+                quality: quality,
+                mozjpeg: true,
+                chromaSubsampling: '4:4:4',
+                force: false
+            })
+            .withMetadata()
+            .toBuffer();
+
+        res.set('Content-Type', 'image/jpeg');
+        res.send(buffer);
+    } catch (error) {
+        console.error('Image compression error:', error);
+        res.status(500).send('Image compression failed');
+    }
+});
+
+const port = process.env.PORT || 3000;
+app.listen(port, () => {
+    console.log(`Server running on port ${port}`);
+});
+
+module.exports = app; 

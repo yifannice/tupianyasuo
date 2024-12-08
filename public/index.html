@@ -27,8 +27,9 @@
         <section class="control-section" style="display: none">
             <div class="quality-control">
                 <label for="quality">压缩质量: <span id="qualityValue">80%</span></label>
-                <input type="range" id="quality" min="0" max="100" value="80">
+                <input type="range" id="quality" min="0" max="100" value="80" step="1">
             </div>
+            <button id="compressBtn" class="compress-btn">压缩图片</button>
         </section>
 
         <section class="preview-section" style="display: none">
@@ -46,7 +47,7 @@
                 <div class="preview-box compressed">
                     <h3>压缩后</h3>
                     <div class="image-container">
-                        <img id="compressedImage" alt="压缩后的图片">
+                        <img id="compressedImage" alt="">
                     </div>
                     <div class="file-info">
                         <p>文件大小: <span id="compressedSize">0 KB</span></p>
